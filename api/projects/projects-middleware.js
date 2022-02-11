@@ -1,29 +1,25 @@
-const Project = require("./projects-model");
+const Projects = require("./projects-model");
 
-function checkId(req, res, next) {
-  const { id } = req.params;
-  Project.get(id)
-    .then((pId) => {
-      if (!pId) {
-        res.status(404).json({
-          message: "User not found",
-        });
-      } else {
-        req.project = pId;
-        next();
-      }
-    })
-    .catch(next);
-}
+// add middlewares here related to projects
+async function validateProjectId(req, res, next) {
+  const validProject = await Projects.get(req.params.id);
 
-function validateProject(req, res, next) {
-  const { name, description } = req.body;
-  if (name && description && typeof completed === "boolean") {
+  if (validProject) {
+    req.project = validProject;
     next();
   } else {
-    res.status(400).json({
-      message: "name and description required",
-    });
+    next({ status: 404, message: "no project found" });
+  }
+}
+
+function validateProjectBody(req, res, next) {
+  const { name, description, completed } = req.body;
+
+  if (!name || !description || completed === undefined) {
+    console.log("validating project body");
+    next({ status: 400 });
+  } else {
+    next();
   }
 }
 
@@ -34,9 +30,8 @@ function handleError(err, req, res) {
     stack: err.stack,
   });
 }
-
 module.exports = {
-  checkId,
-  validateProject,
+  validateProjectId,
+  validateProjectBody,
   handleError,
 };
