@@ -37,4 +37,6 @@ function handleError(err, req, res) {
 
 module.exports = {
   checkId,
+  validateProject,
+  handleError,
 };

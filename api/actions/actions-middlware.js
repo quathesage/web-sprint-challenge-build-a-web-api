@@ -1,35 +1,28 @@
-const Action = require("./actions-model");
+const Actions = require("./actions-model");
 
-async function checkActionId(req, res, next) {
-  try {
-    const action = await Action.get(req.params.id);
-    if (!action) {
-      res.status(404).json({
-        message: "Action id not found",
-      });
-    } else {
-      req.action = action;
-      next();
-    }
-  } catch (err) {
-    res.status(500).json({
-      message: "Action not found",
-    });
+// add middlewares here related to projects
+async function validateActions(req, res, next) {
+  const validAction = await Actions.get(req.params.id);
+
+  if (validAction) {
+    req.action = validAction;
+    next();
+  } else {
+    next({ status: 404, message: "no Actions found" });
   }
 }
 
-function validateActionPost(req, res, next) {
-  const { project_id, descripton, notes } = req.body;
-  if (project_id && descripton && notes) {
-    next();
+function validateActionBody(req, res, next) {
+  const { notes, description, completed, project_id } = req.body;
+
+  if (!notes || !description || completed === undefined || !project_id) {
+    next({ status: 400 });
   } else {
-    res.status(400).json({
-      message: "missing required post fields",
-    });
+    next();
   }
 }
 
 module.exports = {
-  checkActionId,
-  validateActionPost,
+  validateActions,
+  validateActionBody,
 };
